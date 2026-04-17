@@ -23,4 +23,8 @@ export default defineNuxtConfig({
 			include: ['zod'],
 		},
 	},
+	ssr: false,
+	nitro: {
+		preset: 'vercel-static',
+	},
 })
