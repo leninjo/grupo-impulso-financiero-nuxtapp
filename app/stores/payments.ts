@@ -1,11 +1,11 @@
 interface Payment {
 	id: string
-	ticket_number: string
 	created_at: string
 	full_name: string
 	bank: string
 	formatted_date: string
 	amount: number
+	file_path: string
 }
 
 export const usePaymentsStore = defineStore('payments', () => {
@@ -60,33 +60,40 @@ export const usePaymentsStore = defineStore('payments', () => {
 
 		const { data } = await supabase
 			.from('payments')
-			.select('*, profiles(full_name), banks(name)')
+			.select(
+				`
+				id,
+				created_at,
+				profiles(full_name),
+				banks(name),
+				payment_receipts(file_path)
+			`,
+			)
 			.gte('month', firstDay)
 			.lt('month', lastDay)
+			.not('payment_receipts', 'is', null)
 
-		payments.value = (data ?? []).map((p: any) => ({
-			id: p.id,
-			ticket_number: p.ticket_number,
-			created_at: p.created_at,
-			full_name: p.profiles?.full_name ?? 'Sin nombre',
-			bank: p.banks?.name ?? 'Sin banco',
-			formatted_date: new Date(p.created_at).toLocaleString('es-GT', {
-				timeZone: 'America/Guatemala',
-				year: 'numeric',
-				month: '2-digit',
-				day: '2-digit',
-				hour: '2-digit',
-				minute: '2-digit',
-				hour12: true,
-			}),
-			amount,
-		}))
+		payments.value = (data ?? [])
+			.filter((p: any) => p.payment_receipts?.length > 0)
+			.map((p: any) => ({
+				id: p.id,
+				created_at: p.created_at,
+				full_name: p.profiles?.full_name ?? 'Sin nombre',
+				bank: p.banks?.name ?? 'Sin banco',
+				file_path: p.payment_receipts[0].file_path,
+				formatted_date: new Date(p.created_at).toLocaleString('es-GT', {
+					timeZone: 'America/Guatemala',
+					year: 'numeric',
+					month: '2-digit',
+					day: '2-digit',
+					hour: '2-digit',
+					minute: '2-digit',
+					hour12: true,
+				}),
+				amount,
+			}))
 
 		loading.value = false
-	}
-
-	function addPayment(payment: Payment) {
-		payments.value = [payment, ...payments.value]
 	}
 
 	function reset() {
@@ -100,8 +107,6 @@ export const usePaymentsStore = defineStore('payments', () => {
 		loading,
 		monthOptions,
 		selectedMonth,
-		fetchPayments,
-		addPayment,
 		reset,
 	}
 })

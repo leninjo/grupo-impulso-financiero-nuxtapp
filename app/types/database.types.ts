@@ -93,13 +93,41 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_receipts: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: number
+          payment_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: number
+          payment_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: number
+          payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           bank_id: string
           created_at: string
           id: string
           month: string
-          ticket_number: string
           user_id: string
         }
         Insert: {
@@ -107,7 +135,6 @@ export type Database = {
           created_at?: string
           id?: string
           month?: string
-          ticket_number: string
           user_id: string
         }
         Update: {
@@ -115,7 +142,6 @@ export type Database = {
           created_at?: string
           id?: string
           month?: string
-          ticket_number?: string
           user_id?: string
         }
         Relationships: [
